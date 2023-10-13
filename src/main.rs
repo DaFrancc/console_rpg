@@ -10,7 +10,8 @@ fn main() {
     let mut player_input = String::from("");
     clear_console();
     print_pic();
-    set_game_text(String::from("you are cringe lmao so you started this stupid ass game thinking that you       couldnt not be cringe but that was not the case you are stupid"));
+    set_game_text(String::from("you are cringe lmao so you started this stupid ass game thinking \
+    that you       couldn't not be cringe but that was not the case you are stupid"));
     set_player_text(&player_input);
     loop {
         // `poll()` waits for an `Event` for a given time period
@@ -54,14 +55,34 @@ fn main() {
     }
 }
 
+fn set_background_color() {
+    print!("\x1b[48;2;0;0;0m");
+    print!("\x1b[38;2;255;255;255m");
+}
+
 fn clear_console() {
-    let _ = Command::new("cmd")
-        .args(&["/C", "cls"])
-        .status();
+    let _ = Command::new("clear")
+        .status()
+        .expect("Failed to clear the screen");
+    set_background_color();
+    flush_console();
+}
+
+fn flush_console() {
+    let console_width = " ".repeat(130);
+    let console_height = 28;
+    for _ in 0..console_height {
+        println!("{}", console_width);
+    }
 }
 
 fn set_game_text(str: String) {
     let mut stdout = stdout();
+
+    match stdout.queue(cursor::MoveTo(0, 23)) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
 
     if str.len() < 80 {
         print!("{}{}", " ".repeat(20), str);
@@ -73,16 +94,43 @@ fn set_game_text(str: String) {
     }
 }
 
+fn draw_on_screen(str: &String, x: u16, y: u16) {
+    let mut stdout = stdout();
+    // const ANSI_CLEAR: &str = "\x1b[2K";
+
+    let pic: Vec<&str> = str.split('\n').collect();
+
+    match stdout.queue(cursor::MoveTo(x, y)) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+
+    let color = "\x1b[38;2;163;163;163m";
+
+    print!("{}", color);
+
+    for (line, i) in pic.iter().zip(1..=pic.len()) {
+        print!("{}", line);
+
+        match stdout.queue(cursor::MoveTo(x, y + i as u16)) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+    }
+
+    print!("\x1b[0m");
+}
+
 fn set_player_text(str: &String) {
     let mut stdout = stdout();
+    const ANSI_CLEAR: &str = "\x1b[2K";
 
     if str.len() < 80 {
         let position: (u16, u16) = ((20 + str.len()) as u16, 27);
 
         stdout.queue(cursor::MoveTo(position.0, position.1)).unwrap();
 
-        print!("\x1b[2K\r{}>> {}", " ".repeat(17), str);
-        //println!("{}", str.len());
+        print!("{}\r{}>> {}", ANSI_CLEAR, " ".repeat(17), str);
 
         stdout.flush().unwrap();
     }
@@ -91,8 +139,8 @@ fn set_player_text(str: &String) {
 
         stdout.queue(cursor::MoveTo(position.0, position.1)).unwrap();
 
-        println!("\x1b[2K\r{}>> {}", " ".repeat(17), str[..80].to_string());
-        print!("\x1b[2K\r{}{}", " ".repeat(20), str[80..].to_string());
+        println!("{}\r{}>> {}", ANSI_CLEAR, " ".repeat(17), str[..80].to_string());
+        print!("{}\r{}{}", ANSI_CLEAR, " ".repeat(20), str[80..].to_string());
         //println!("{}", str.len());
 
         stdout.flush().unwrap();
@@ -103,17 +151,23 @@ fn parse_input(str: &mut String) -> bool {
     clear_console();
     print_pic();
     if str.to_lowercase() == String::from("quit") {
+        clear_console();
         false
     }
     else {
+        if str.to_lowercase() == String::from("draw") {
+            draw_on_screen(&String::from("      \n\u{2502} \u{25CB}_\u{0332}_\u{0332}  \n\u{253C}/|)*)\n / \\\u{203E} \n      "), 50, 10);
+        }
         str.clear();
-        set_game_text(String::from("you are cringe lmao so you started this stupid ass game thinking that you       couldnt not be cringe but that was not the case you are stupid"));
+        set_game_text(String::from("you are cringe lmao so you started this stupid ass game thinking \
+    that you       couldn't not be cringe but that was not the case you are stupid"));
         set_player_text(str);
         true
     }
 }
 
 fn print_pic() {
+    let twenty_spaces = " ".repeat(20);
     println!("\n{0}   .............::::::::::^^^^^^^^^^^^::::::::............                
 {0} ..........::::::::::::::^^^~~~~~!!!!!~~~~^^^::::::........                
 {0}..........:::::::::::::^^^~~!!77???77777777!~~^::::............            
@@ -134,5 +188,5 @@ fn print_pic() {
 {0}................:::::::::::::::::::::::::::^^^^^^^^:::^^^^^::::::...............
 {0}..................:.........:::::::::^^^^^~~~~^^::::::::::::::............... 
 {0}  .....  ..................::::::::::^^^^^^^^^:::::::::::::..............    
-{0}     .......................::::::::::::::::::::::::::::...........         \n", " ".repeat(20));
+{0}     .......................::::::::::::::::::::::::::::...........         \n", twenty_spaces);
 }
