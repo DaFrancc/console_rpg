@@ -1,3 +1,11 @@
+mod layer;
+mod sprite;
+mod animation;
+mod extended_background;
+
+use sprite::Sprite;
+use layer::Layer;
+
 use std::time::Duration;
 use std::process::Command;
 
@@ -8,11 +16,14 @@ use crossterm::{QueueableCommand, cursor};
 
 fn main() {
     let mut player_input = String::from("");
-    clear_console();
+    reset_console();
     print_pic();
     set_game_text(String::from("you are cringe lmao so you started this stupid ass game thinking \
     that you       couldn't not be cringe but that was not the case you are stupid"));
     set_player_text(&player_input);
+
+    // let
+
     loop {
         // `poll()` waits for an `Event` for a given time period
         let thing: bool = match poll(Duration::from_millis(500)) {
@@ -28,10 +39,6 @@ fn main() {
                     if event.kind != crossterm::event::KeyEventKind::Press {
                         continue;
                     }
-
-                    //clear_console();
-                    
-                    // print_pic();
 
                     match event.code {
                         crossterm::event::KeyCode::Char(c) => {
@@ -55,16 +62,13 @@ fn main() {
     }
 }
 
-fn set_background_color() {
+fn set_default_colors() {
     print!("\x1b[48;2;0;0;0m");
     print!("\x1b[38;2;255;255;255m");
 }
 
-fn clear_console() {
-    let _ = Command::new("clear")
-        .status()
-        .expect("Failed to clear the screen");
-    set_background_color();
+fn reset_console() {
+    set_default_colors();
     flush_console();
 }
 
@@ -148,10 +152,10 @@ fn set_player_text(str: &String) {
 }
 
 fn parse_input(str: &mut String) -> bool {
-    clear_console();
+    reset_console();
     print_pic();
     if str.to_lowercase() == String::from("quit") {
-        clear_console();
+        reset_console();
         false
     }
     else {
